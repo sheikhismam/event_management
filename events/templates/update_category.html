@@ -1,0 +1,13 @@
+{% extends "event.html" %}
+{% block title %} Update Category {% endblock title %}
+{% block event %}
+<section class="container mx-auto py-10 px-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Update Category</h1>
+    <form method="post" class="bg-white shadow-md rounded-xl p-6 max-w-xl mx-auto">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-lg">Save Category</button>
+        <a href="{% url 'event-details' event.id %}" class="ml-3 text-purple-600 font-semibold hover:underline">Cancel</a>
+    </form>
+</section>
+{% endblock event %}

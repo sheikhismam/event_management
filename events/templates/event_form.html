@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Create Event Form{% endblock title %}</title>
+    <link rel="stylesheet" href="{% static "css/output.css" %}">
+</head>
+<body>
+    <div class="w-1/2 mx-auto items-center">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="px-2 py-1 {% if message.tags == 'success' %}bg-green-500{% endif %}">{{message}}</div>
+        {% endfor %}
+    {% endif %}
+    <form method="POST">
+        {% csrf_token %}
+        {{event_form}}
+        {{participant_form}}
+        <select name="category" id="category" class="border-2 w-full mt-3 border-gray-300 rounded-lg p-2 shadow-sm">
+            <option value="">Select a category</option>
+            {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" class="bg-red-500 px-3 py-3 font-semibold text-xl rounded-md text-white my-3">Submit</button>
+    </form>
+    </div>
+</body>
+</html>

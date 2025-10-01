@@ -1,0 +1,312 @@
+{% extends "event.html" %}
+{% block title %}Organizer Dashboard{% endblock title %}
+{% block event %}
+{% comment %} stats grid {% endcomment %}
+<div class="grid grid-cols-4 gap-6 mb-6 mt-6 mx-16">
+   <!-- Total Participants -->
+   <a href="{% url "organizer-dashboard" %}?type=participants">
+   <div class="bg-white rounded-2xl p-6 border-2 border-gray-100 shadow-sm">
+      <h3 class="text-lg font-semibold text-gray-500 mb-4">TOTAL PARTICIPANTS</h3>
+      <div class="flex justify-between items-center">
+         <div>
+            <p class="font-semibold text-3xl mt-3 pb-2">{{participant_count}}</p>
+         </div>
+         <div class="p-3 bg-blue-100 rounded-full">
+            <svg 
+               xmlns="http://www.w3.org/2000/svg" 
+               fill="none" 
+               viewBox="0 0 24 24" 
+               stroke-width="1.5" 
+               stroke="currentColor" 
+               class="w-6 h-6 text-blue-600">
+               <path 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" 
+                  stroke-width="2" 
+                  d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M12 12a4 4 0 100-8 4 4 0 000 8z" 
+                  />
+            </svg>
+         </div>
+      </div>
+   </div>
+   </a>
+   <!-- Total Events -->
+   <a href="{% url "organizer-dashboard" %}?type=all">
+   <div
+      class="bg-white rounded-2xl p-6 border-2 border-gray-100 shadow-sm"
+      >
+      <h3 class="text-lg font-semibold text-gray-500 mb-4">
+         TOTAL EVENTS
+      </h3>
+      <div class="flex justify-between items-center">
+         <div>
+            <p class="font-semibold text-3xl mt-3 pb-2">
+               {{event_counts.total}}
+            </p>
+         </div>
+         <div class="p-3 bg-green-100 rounded-full">
+            <svg 
+               xmlns="http://www.w3.org/2000/svg" 
+               fill="none" 
+               viewBox="0 0 24 24" 
+               stroke-width="1.5" 
+               stroke="currentColor" 
+               class="size-6">
+               <path 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" 
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" 
+                  />
+            </svg>
+         </div>
+      </div>
+   </div>
+   </a>
+   <!-- Total upcoming events -->
+   <a href="{% url "organizer-dashboard" %}?type=upcoming">
+   <div class="bg-white rounded-2xl p-6 border-2 border-gray-100 shadow-sm">
+      <h3 class="text-lg font-semibold text-gray-500 mb-4">
+         TOTAL UPCOMING EVENTS
+      </h3>
+      <div class="flex justify-between items-center">
+         <div>
+            <p class="font-semibold text-3xl mt-3 pb-2">
+               {{event_counts.upcoming}}
+            </p>
+         </div>
+         <div class="p-3 bg-yellow-100 rounded-full">
+            <svg 
+               xmlns="http://www.w3.org/2000/svg" 
+               fill="none" 
+               viewBox="0 0 24 24" 
+               stroke-width="1.5" 
+               stroke="currentColor" 
+               class="w-6 h-6 text-yellow-600">
+               <path 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" 
+                  stroke-width="2" 
+                  d="M8 7V3m8 4V3M3 8h18M4 21h16a2 2 0 002-2V8a2 2 0 00-2-2H4a2 2 0 00-2 2v11a2 2 0 002 2z" 
+                  />
+               <path 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" 
+                  stroke-width="2" d="M12 14v-4h4m0 0l-2-2m2 2l-2 2" 
+                  />
+            </svg>
+         </div>
+      </div>
+   </div>
+   </a>
+   <!-- Total Past Events-->
+   <a href="{% url "organizer-dashboard" %}?type=past">
+   <div class="bg-white rounded-2xl p-6 border-2 border-gray-100 shadow-sm" >
+      <h3 class="text-lg font-semibold text-gray-500 mb-4">TOTAL PAST EVENTS</h3>
+      <div class="flex justify-between items-center">
+         <div>
+            <p class="font-semibold text-3xl mt-3 pb-2">{{event_counts.past}}</p>
+         </div>
+         <div class="p-3 bg-purple-100 rounded-full">
+            <svg 
+               xmlns="http://www.w3.org/2000/svg" 
+               fill="none" 
+               viewBox="0 0 24 24" 
+               stroke-width="1.5" 
+               stroke="currentColor" 
+               class="w-6 h-6 text-purple-600">
+               <path 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" 
+                  stroke-width="2" d="M8 7V3m8 4V3M3 8h18M4 21h16a2 2 0 002-2V8a2 2 0 00-2-2H4a2 2 0 00-2 2v11a2 2 0 002 2z" 
+                  />
+               <path 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" 
+                  stroke-width="2" d="M9 12l2 2 4-4" 
+                  />
+            </svg>
+         </div>
+      </div>
+   </div>
+   </a>
+</div>
+{% comment %} Today's Events List {% endcomment %}
+<div class="bg-white rounded-2xl pb-4 shadow-sm mx-10">
+   <h1 class="text-center font-bold  text-3xl p-6 bg-white" >
+      {% if type == "upcoming" %}
+      Upcoming Events
+      {% elif type == "all" %}
+      All Events
+      {% elif type == "past" %}
+      Past Events
+      {% elif type == "participants" %}
+      Participants
+      {% else %}
+      Today's Events
+      {% endif %}
+   </h1>
+   <!-- EVENT header -->
+   {% if type == "participants" %}
+   <div
+      class="grid grid-cols-4 p-3 border-b border-gray-500 text-lg font-semibold text-gray-500"
+      >
+      <div>PARTICIPANT'S NAME</div>
+      <div>PARTICIPANT'S EMAIL</div>
+      <div>PARTICIPATING EVENT</div>
+      <div>PARTICIPANT'S CATEGORY</div>
+   </div>
+   {% else %}
+   <div
+      class="grid grid-cols-5 p-3 border-b border-gray-500 text-lg font-semibold text-gray-500"
+      >
+      <div>EVENT TITLE</div>
+      <div>CATEGORY</div>
+      <div>PARTICIPANTS</div>
+      <div>DATE & TIME</div>
+      <div>LOCATION</div>
+   </div>
+   {% endif %}
+   <!-- EVENT ITEMS -->
+   {% if type == "participants" %}
+   <div class="divide-y divide-gray-200 text-md">
+      {% for participant in participants %}
+      <div class="grid grid-cols-4 p-3 gap-4">
+         <div class="flex items-center gap-2">
+            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+            <div class="font-semibold flex items-center">
+               <span>{{participant.name}}</span>
+            </div>
+         </div>
+         <div>
+            <span class="px-3 text-md"
+               >{{participant.email}}</span
+               >
+         </div>
+         <div class="flex flex-col-4 gap-1">
+            {% for event in participant.event.all %}
+            <div class="text-md">
+               {{event.name}},
+            </div>
+            {% endfor %}
+         </div>
+          <div class="flex -space-x-2">
+            {% for event in participant.event.all %}
+            <div class="w-10 h-10 bg-blue-500 rounded-full flex justify-center items-center text-white border-2 border-white text-md">
+               {{event.category.name|slice:":4"}}
+            </div>
+            {% endfor %}
+         </div> 
+        </div>
+      {% endfor %}
+   </div>
+   {% elif type == "all" or type == 'upcoming' or type == 'past' %}
+      {% if type == "all" and todays_events %}
+         <div class="divide-y divide-gray-200 text-md">
+            {% for event in todays_events %}
+            <div class="grid grid-cols-5 p-3 gap-2">
+               <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div class="font-semibold flex items-center">
+                     <span>{{event.name}}</span>
+                  </div>
+               </div>
+               <div>
+                  <span class="px-3 bg-blue-50 rounded-full text-blue-600 text-sm"
+                     >{{event.category}}</span
+                     >
+               </div>
+               <div class="flex -space-x-2">
+                  {% for participant in event.participants.all %}
+                  <div class="w-8 h-8 bg-blue-500 rounded-full flex justify-center items-center text-white border-2 border-white text-sm">
+                     {{participant.name|slice:":2"}}
+                  </div>
+                  {% endfor %}
+               </div>
+               <div>
+                  {{event.start_date}}
+                  {{event.time}}
+               </div>
+               <div class="text-gray-500">{{event.location}}</div>
+            </div>
+            {% endfor %}
+         </div>
+   {% else %}
+         {% if event_counts.total == '0' %}
+            <h2 class="text-center text-2xl p-6">No events found. Please create an event.</h2>
+         {% elif event_counts.past == '9' %}
+            <h2 class="text-center text-2xl p-6">No past events found.</h2>
+         {% elif event_counts.upcoming == '0' %}
+            <h2 class="text-center text-2xl p-6">No upcoming events found.</h2>
+         {% elif participant_count == '0'  %}
+            <h2 class="text-center text-2xl p-6">No participants found.</h2>
+         {% endif %}
+      <!-- EVENT ITEMS -->
+      <div class="divide-y divide-gray-200 text-md">
+         {% for event in events %}
+         <!-- EVENT ITEM 1 -->
+         <div class="grid grid-cols-5 p-3 gap-2">
+            <div class="flex items-center gap-2">
+               <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+               <div class="font-semibold flex items-center">
+                  <span>{{event.name}}</span>
+               </div>
+            </div>
+            <div>
+               <span class="px-3 bg-blue-50 rounded-full text-blue-600 text-sm"
+                  >{{event.category}}</span
+                  >
+            </div>
+            <div class="flex -space-x-2">
+               {% for participant in event.participants.all %}
+               <div class="w-8 h-8 bg-blue-500 rounded-full flex justify-center items-center text-white border-2 border-white text-sm">
+                  {{participant.name|slice:":2"}}
+               </div>
+               {% endfor %}
+            </div>
+            <div>
+               {{event.start_date}}
+               {{event.time}}
+            </div>
+            <div class="text-gray-500">{{event.location}}</div>
+         </div>
+         {% endfor %}
+      </div>
+      {% endif %}
+   {% else %}
+   {% if todays_events %}
+   <div class="divide-y divide-gray-200 text-md">
+      {% for event in todays_events %}
+      <!-- EVENT ITEM 1 -->
+      <div class="grid grid-cols-5 p-3 gap-2">
+         <div class="flex items-center gap-2">
+            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+            <div class="font-semibold flex items-center">
+               <span>{{event.name}}</span>
+            </div>
+         </div>
+         <div>
+            <span class="px-3 bg-blue-50 rounded-full text-blue-600 text-sm"
+               >{{event.category}}</span
+               >
+         </div>
+         <div class="flex -space-x-2">
+            {% for participant in event.participants.all %}
+            <div class="w-8 h-8 bg-blue-500 rounded-full flex justify-center items-center text-white border-2 border-white text-sm">
+               {{participant.name|slice:":2"}}
+            </div>
+            {% endfor %}
+         </div>
+         <div>
+            {{event.start_date}}
+            {{event.time}}
+         </div>
+         <div class="text-gray-500">{{event.location}}</div>
+      </div>
+      {% endfor %}
+   </div>
+   {% else %}
+   <h2 class="text-center text-2xl p-6">No events scheduled for today.</h2>
+   {% endif %}
+   {% endif %}
+</div>
+{% endblock event %}
