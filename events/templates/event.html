@@ -15,11 +15,13 @@
       <div
         class="flex justify-between items-center w-5/6 mx-auto bg-text-white"
       >
-        <div class="text-2xl py-5 font-normal">Dashboard</div>
+        <a href="{% url "organizer-dashboard" %}">
+          <div class="text-2xl py-5 font-normal">Dashboard</div>
+        </a>
         <div class="flex justify-between items-center">
           <div class="px-4">
-            <a class="px-3 font-bold" href="">HOME</a>
-            <a class="px-3 font-bold" href="">ABOUT</a>
+            <a class="px-3 font-bold" href="{% url "view-events" %}">HOME</a>
+            <a class="px-3 font-bold" >ABOUT</a>
             <a class="px-3 font-bold" href="">EVENTS</a>
             <a class="px-3 font-bold" href="">GALLERY</a>
             <a class="px-3 font-bold" href="">BLOGS</a>

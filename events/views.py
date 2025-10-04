@@ -12,7 +12,7 @@ def details(request, id):
 
 
 def organizer_dashboard(request):
-    type = request.GET.get('type', 'all')
+    type = request.GET.get('type', '')
 
     events = Event.objects.select_related("category").prefetch_related("participants")
     participants = Participant.objects.all()
@@ -23,6 +23,7 @@ def organizer_dashboard(request):
         events = events.filter(end_date__lt=date.today())
     elif type == "all":
         events = events
+    
 
     participant_count = participants.count()
     event_counts = Event.objects.aggregate(
@@ -30,7 +31,7 @@ def organizer_dashboard(request):
         upcoming=Count('id', filter=Q(start_date__gte=date.today())),
         past=Count('id', filter=Q(end_date__lt=date.today()))
     )
-
+    view_type = "today"
     todays_events = Event.objects.filter(start_date=date.today())
 
     context = {
@@ -39,6 +40,7 @@ def organizer_dashboard(request):
         'participant_count': participant_count,
         'event_counts': event_counts,
         'type': type,
+        'view_type': view_type,
         'todays_events': todays_events
     }
     return render(request, 'organizer_dashboard.html', context)
@@ -72,7 +74,7 @@ def create_event(request):
 
 
 def update_event(request, id):
-    event = get_object_or_404(Event, id=id)
+    event = get_object_or_404(Event, id=id)  
     event_form = EventModelForm(instance=event)
 
     if request.method == "POST":
@@ -80,7 +82,7 @@ def update_event(request, id):
         if event_form.is_valid():
             event = event_form.save()
             messages.success(request, 'Event updated successfully')
-            return redirect('event-details', id=event.pk) 
+            return redirect('event-details', id=event.id) 
 
     context = {
         'event_form': event_form,
@@ -125,13 +127,23 @@ def update_category(request, id):
 
     return render(request, "update_category.html", {"form": category_form, "event": event})
 
+def search_events(request):
+    searchText = request.GET.get('searchText', '')
+    if searchText:
+        events = Event.objects.filter(Q(name__icontains=searchText) | Q(location__icontains=searchText))
+    else:
+        events = Event.objects.all()
+    if not events.exists():
+        messages.info(request, "No events found matching your search criteria.")
+    return render(request, 'event_home.html', {'events': events})
+
 
 def delete_event(request, id):
     event = Event.objects.get(id=id)
 
     if request.method == "POST":
         event.delete()
-        return redirect('manager-dashboard')
+        return redirect('organizer-dashboard')
 
     return render(request, "delete_event.html", {"event": event})
 

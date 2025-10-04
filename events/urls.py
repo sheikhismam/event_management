@@ -10,4 +10,5 @@ urlpatterns = [
     path('update-participant/<int:id>/', update_participant, name="update-participant"),
     path('update-category/<int:id>/', update_category, name="update-category"),
     path('organizer-dashboard/', organizer_dashboard, name="organizer-dashboard"),
+    path('search-events/', search_events, name="search-events")
 ]

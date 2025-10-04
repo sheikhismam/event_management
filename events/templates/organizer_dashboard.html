@@ -129,8 +129,8 @@
       </div>
    </div>
    </a>
-</div>
-{% comment %} Today's Events List {% endcomment %}
+</div>   
+{% comment %} Events List {% endcomment %}
 <div class="bg-white rounded-2xl pb-4 shadow-sm mx-10">
    <h1 class="text-center font-bold  text-3xl p-6 bg-white" >
       {% if type == "upcoming" %}
@@ -141,32 +141,33 @@
       Past Events
       {% elif type == "participants" %}
       Participants
-      {% else %}
+      {% elif type == "" %}
       Today's Events
       {% endif %}
    </h1>
    <!-- EVENT header -->
    {% if type == "participants" %}
-   <div
+      <div
       class="grid grid-cols-4 p-3 border-b border-gray-500 text-lg font-semibold text-gray-500"
       >
       <div>PARTICIPANT'S NAME</div>
       <div>PARTICIPANT'S EMAIL</div>
       <div>PARTICIPATING EVENT</div>
       <div>PARTICIPANT'S CATEGORY</div>
-   </div>
+      </div>
    {% else %}
-   <div
-      class="grid grid-cols-5 p-3 border-b border-gray-500 text-lg font-semibold text-gray-500"
+      <div
+         class="grid grid-cols-5 p-3 border-b border-gray-500 text-lg font-semibold text-gray-500"
       >
-      <div>EVENT TITLE</div>
-      <div>CATEGORY</div>
-      <div>PARTICIPANTS</div>
-      <div>DATE & TIME</div>
-      <div>LOCATION</div>
-   </div>
+         <div>EVENT TITLE</div>
+         <div>CATEGORY</div>
+         <div>PARTICIPANTS</div>
+         <div>DATE & TIME</div>
+         <div>LOCATION</div>
+      </div>
    {% endif %}
    <!-- EVENT ITEMS -->
+   
    {% if type == "participants" %}
    <div class="divide-y divide-gray-200 text-md">
       {% for participant in participants %}
@@ -189,96 +190,22 @@
             </div>
             {% endfor %}
          </div>
-          <div class="flex -space-x-2">
+         <div class="flex -space-x-2">
             {% for event in participant.event.all %}
             <div class="w-10 h-10 bg-blue-500 rounded-full flex justify-center items-center text-white border-2 border-white text-md">
                {{event.category.name|slice:":4"}}
             </div>
             {% endfor %}
-         </div> 
-        </div>
+         </div>
+      </div>
       {% endfor %}
    </div>
    {% elif type == "all" or type == 'upcoming' or type == 'past' %}
-      {% if type == "all" and todays_events %}
-         <div class="divide-y divide-gray-200 text-md">
-            {% for event in todays_events %}
-            <div class="grid grid-cols-5 p-3 gap-2">
-               <div class="flex items-center gap-2">
-                  <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <div class="font-semibold flex items-center">
-                     <span>{{event.name}}</span>
-                  </div>
-               </div>
-               <div>
-                  <span class="px-3 bg-blue-50 rounded-full text-blue-600 text-sm"
-                     >{{event.category}}</span
-                     >
-               </div>
-               <div class="flex -space-x-2">
-                  {% for participant in event.participants.all %}
-                  <div class="w-8 h-8 bg-blue-500 rounded-full flex justify-center items-center text-white border-2 border-white text-sm">
-                     {{participant.name|slice:":2"}}
-                  </div>
-                  {% endfor %}
-               </div>
-               <div>
-                  {{event.start_date}}
-                  {{event.time}}
-               </div>
-               <div class="text-gray-500">{{event.location}}</div>
-            </div>
-            {% endfor %}
-         </div>
-   {% else %}
-         {% if event_counts.total == '0' %}
-            <h2 class="text-center text-2xl p-6">No events found. Please create an event.</h2>
-         {% elif event_counts.past == '9' %}
-            <h2 class="text-center text-2xl p-6">No past events found.</h2>
-         {% elif event_counts.upcoming == '0' %}
-            <h2 class="text-center text-2xl p-6">No upcoming events found.</h2>
-         {% elif participant_count == '0'  %}
-            <h2 class="text-center text-2xl p-6">No participants found.</h2>
-         {% endif %}
-      <!-- EVENT ITEMS -->
+      {% if events %}
       <div class="divide-y divide-gray-200 text-md">
          {% for event in events %}
-         <!-- EVENT ITEM 1 -->
          <div class="grid grid-cols-5 p-3 gap-2">
             <div class="flex items-center gap-2">
-               <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-               <div class="font-semibold flex items-center">
-                  <span>{{event.name}}</span>
-               </div>
-            </div>
-            <div>
-               <span class="px-3 bg-blue-50 rounded-full text-blue-600 text-sm"
-                  >{{event.category}}</span
-                  >
-            </div>
-            <div class="flex -space-x-2">
-               {% for participant in event.participants.all %}
-               <div class="w-8 h-8 bg-blue-500 rounded-full flex justify-center items-center text-white border-2 border-white text-sm">
-                  {{participant.name|slice:":2"}}
-               </div>
-               {% endfor %}
-            </div>
-            <div>
-               {{event.start_date}}
-               {{event.time}}
-            </div>
-            <div class="text-gray-500">{{event.location}}</div>
-         </div>
-         {% endfor %}
-      </div>
-      {% endif %}
-   {% else %}
-   {% if todays_events %}
-   <div class="divide-y divide-gray-200 text-md">
-      {% for event in todays_events %}
-      <!-- EVENT ITEM 1 -->
-      <div class="grid grid-cols-5 p-3 gap-2">
-         <div class="flex items-center gap-2">
             <div class="w-2 h-2 bg-green-500 rounded-full"></div>
             <div class="font-semibold flex items-center">
                <span>{{event.name}}</span>
@@ -301,12 +228,51 @@
             {{event.time}}
          </div>
          <div class="text-gray-500">{{event.location}}</div>
+         </div>
+         {% endfor %}
       </div>
-      {% endfor %}
+      {% elif event_counts.total == 0 %}
+         <h2 class="text-center text-2xl p-6">No events found. Please create an event.</h2>
+      {% elif event_counts.past == 0 %}
+         <h2 class="text-center text-2xl p-6">No past events found.</h2>
+      {% elif event_counts.upcoming == 0 %}
+         <h2 class="text-center text-2xl p-6">No upcoming events found.</h2>
+      {% elif participant_count == 0  %}
+         <h2 class="text-center text-2xl p-6">No participants found.</h2>
+      {% endif %}
+      
+   {% elif type == "" %}
+      {% if todays_events %}
+         <div class="divide-y divide-gray-200 text-md">
+         {% for event in todays_events %}
+            <div class="grid grid-cols-5 p-3 gap-2">
+               <div class="flex items-center gap-2">
+               {% comment %} <div class="w-2 h-2 bg-green-500 rounded-full"></div> {% endcomment %}
+               <div class="font-semibold flex items-center">
+               <span>{{event.name}}</span>
+            </div>
+         </div>
+         <div>
+            <span class="px-3 bg-blue-50 rounded-full text-blue-600 text-sm">{{event.category}}</span>
+         </div>
+         <div class="flex -space-x-2">
+            {% for participant in event.participants.all %}
+            <div class="w-8 h-8 bg-blue-500 rounded-full flex justify-center items-center text-white border-2 border-white text-sm">
+               {{participant.name|slice:":2"}}
+            </div>
+            {% endfor %}
+         </div>
+         <div>
+            {{event.start_date}}
+            {{event.time}}
+         </div>
+         <div class="text-gray-500">{{event.location}}</div>
+         </div>
+         {% endfor %}
+      {% else %}
+      <h2 class="text-center text-2xl p-6">No events scheduled for today.</h2>
+      {% endif %}
    </div>
-   {% else %}
-   <h2 class="text-center text-2xl p-6">No events scheduled for today.</h2>
-   {% endif %}
    {% endif %}
 </div>
 {% endblock event %}

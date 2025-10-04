@@ -5,10 +5,11 @@
 <section class="bg-blue-500 text-white text-center py-20">
    <h1 class="text-6xl font-extrabold mb-4 leading-tight">Host & Discover Amazing Events</h1>
    <p class="mb-8 text-lg">From concerts to conferences, manage everything effortlessly with our event platform.</p>
-   <div class="flex gap-4 justify-center">
-      <input type="text" placeholder="Search for events..." class="rounded-lg text-gray-800 px-3 py-3">
-      <button class="bg-white text-blue-500 rounded-md py-2 px-3 hover:bg-gray-100 ">Search</button>
-   </div>
+
+   <form method="get" action="{% url "search-events" %}" class="flex gap-4 justify-center">
+      <input type="text" name="searchText" value="{{ request.GET.searchText }}" placeholder="Search for events...  (write name or location)" class="rounded-lg text-gray-700 px-3 py-3 w-1/3 text-lg">
+      <button type="submit" class="bg-white text-blue-500 rounded-md py-2 px-3 hover:bg-gray-100 ">Search</button>
+   </form>
 </section>
 <section class="text-3xl text-center py-6 text-white flex justify-center">
    <a href="{% url "create-event" %}" class="bg-green-600 w-1/6 py-3 rounded-md font-semibold hover:bg-green-700">
@@ -24,11 +25,12 @@
       <form method="get" action="{% url 'view-events' %}">
          <select name="type" id="category" class="border-2 border-gray-300 rounded-lg p-2 shadow-sm focus:outline-none focus:border-rose-500 focus:ring-rose-500">
             <option value="">Select a category</option>
-            <option value="community">Community</option>
-            <option value="education">Education</option>
-            <option value="business">Business</option>
+            <option value="social">Social</option>
+            <option value="art">Art</option>
+            <option value="health">Health</option>
+            <option value="technology">Technology</option>
+            <option value="science">Science</option>
             <option value="sports">Sports</option>
-            <option value="music">Music</option>
          </select>
          <button type="submit" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded">Filter</button>
       </form>
@@ -44,6 +46,7 @@
    </div>
    </form>
    <div class="grid gap-8 grid-cols-3 ">
+   {% if events %}
    {% for event in events %}
    {% comment %} event {% endcomment %}
    <div class="bg-white shadow-sm hover:shadow-xl rounded-xl p-4 text-lg">
@@ -62,9 +65,13 @@
          <button type="submit" class="bg-red-600 hover:bg-red-700 shadow-sm px-3 py-2 text-white font-semibold rounded-lg">Delete this event</button>
       </form></div>
    </div>
-   {% empty %}
-      <p class="text-center text-xl text-gray-600">No upcoming events available.</p>
    {% endfor %}
+   {% else %}
+      {% for message in messages %}
+            <p class="text-center text-xl text-gray-600">{{ message }}</p>
+      {% endfor %}   
+
+   {% endif %}
 </div>
 
 </section>

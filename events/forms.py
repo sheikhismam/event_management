@@ -63,7 +63,7 @@ class EventModelForm(StyledFormMixin, forms.ModelForm):
             'description': 'Event Description',
             'start_date': 'Event Start Date',
             'end_date': 'Event End Date',
-            'time': 'Event Time',
+            'time': 'Event Start Time',
             'location': 'Event Location',
             'category': 'Event Category'
         }
