@@ -1,6 +1,6 @@
-{% extends "event.html" %}
+{% extends "base.html" %}
 {% block title %}Organizer Dashboard{% endblock title %}
-{% block event %}
+{% block content %}
 {% comment %} stats grid {% endcomment %}
 <div class="grid grid-cols-4 gap-6 mb-6 mt-6 mx-16">
    <!-- Total Participants -->
@@ -275,4 +275,4 @@
    </div>
    {% endif %}
 </div>
-{% endblock event %}
+{% endblock content %}

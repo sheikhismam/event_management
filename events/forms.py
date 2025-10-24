@@ -1,6 +1,9 @@
 from events.models import Event, Participant, Category
 from django import forms
-
+from django.contrib.auth.models import User
+import re
+from django.core.exceptions import ValidationError
+from django.contrib.auth.forms import AuthenticationForm
 
 class StyledFormMixin:
     def __init__(self, *args, **kwargs):
@@ -39,6 +42,10 @@ class StyledFormMixin:
             elif isinstance(field.widget, forms.Select):
                 field.widget.attrs.update({
                     'class': self.default_classes,
+                })
+            elif isinstance(field.widget, forms.PasswordInput):
+                field.widget.attrs.update({
+                    'class': self.default_classes
                 })
                 
 
@@ -98,3 +105,58 @@ class CategoryModelForm(StyledFormMixin, forms.ModelForm):
             'description': 'Category Description'
         }
 
+
+class RegisterForm(StyledFormMixin, forms.ModelForm):
+    password1 = forms.CharField(widget=forms.PasswordInput())
+    confirm_password = forms.CharField(widget=forms.PasswordInput())
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name','password1', 'confirm_password']
+
+    def clean_password(self):
+        password1 = self.clean_data.get('password1')
+        errors = []
+
+        if len(password1 < 8):
+            errors.append('Password must contain 8 characters')
+        elif re.search(r'[A-Z]', password1):
+            errors.append('Password must contain at least one capital letters')
+        elif re.search(r'[a-z]', password1):
+            errors.append('Password must contain at least one small letters')
+        elif re.search(r'[0-9]', password1):
+            errors.append('Password must contain at least one digit')
+        elif re.search(r'[!@#$%&*]', password1):
+            errors.append('Password must contain at least one special character')
+        
+        if errors:
+            raise ValidationError(errors)    
+        return password1
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('password1')
+        confirm_password = cleaned_data.get('confirm_password')
+        if password1 and confirm_password and password1 != confirm_password:
+            raise ValidationError('Both passwords do not match')
+        elif not password1:
+            raise ValidationError('You did not fill in the password')
+        elif not confirm_password:
+            raise ValidationError('You did not confirm the password')
+        return cleaned_data
+    
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        email_exists = User.objects.filter(email=email).exists()
+        if email_exists:
+            raise ValidationError('A user with that email already exists')
+        return email
+
+    
+class LoginForm(StyledFormMixin, AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+
+    

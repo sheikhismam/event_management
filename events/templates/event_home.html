@@ -1,20 +1,27 @@
-{% extends "event.html" %}
-{% block title %} Home {% endblock title %}
-{% block event %}
-{% comment %} hero section {% endcomment %}
+{% extends "base.html" %}
+{% block title %}
+    Home
+{% endblock title %}
+{% block content %}
+    {% comment %} hero section {% endcomment %}
 <section class="bg-blue-500 text-white text-center py-20">
    <h1 class="text-6xl font-extrabold mb-4 leading-tight">Host & Discover Amazing Events</h1>
    <p class="mb-8 text-lg">From concerts to conferences, manage everything effortlessly with our event platform.</p>
-
-   <form method="get" action="{% url "search-events" %}" class="flex gap-4 justify-center">
-      <input type="text" name="searchText" value="{{ request.GET.searchText }}" placeholder="Search for events...  (write name or location)" class="rounded-lg text-gray-700 px-3 py-3 w-1/3 text-lg">
-      <button type="submit" class="bg-white text-blue-500 rounded-md py-2 px-3 hover:bg-gray-100 ">Search</button>
+   <form method="get"
+         action="{% url "search-events" %}"
+         class="flex gap-4 justify-center">
+      <input type="text"
+               name="searchText"
+               value="{{ request.GET.searchText }}"
+               placeholder="Search for events...  (write name or location)"
+               class="rounded-lg text-gray-700 px-3 py-3 w-1/3 text-lg">
+      <button type="submit"
+               class="bg-white text-blue-500 rounded-md py-2 px-3 hover:bg-gray-100 ">Search</button>
    </form>
 </section>
 <section class="text-3xl text-center py-6 text-white flex justify-center">
-   <a href="{% url "create-event" %}" class="bg-green-600 w-1/6 py-3 rounded-md font-semibold hover:bg-green-700">
-   Create an event
-   </a>
+   <a href="{% url "create-event" %}"
+      class="bg-green-600 w-1/6 py-3 rounded-md font-semibold hover:bg-green-700">Create an event</a>
 </section>
 {% comment %} events {% endcomment %}
 <section class="container py-16 pt-4 justify-center items-center px-6 mx-auto">
@@ -22,57 +29,68 @@
    {% comment %} Category filter {% endcomment %}
    <div class="flex flex-row md:flex-row gap-4 justify-center items-center md:items-center mb-10">
       <h2 class="font-semibold text-2xl">Category:</h2>
-      <form method="get" action="{% url 'view-events' %}">
-         <select name="type" id="category" class="border-2 border-gray-300 rounded-lg p-2 shadow-sm focus:outline-none focus:border-rose-500 focus:ring-rose-500">
-            <option value="">Select a category</option>
-            <option value="social">Social</option>
-            <option value="art">Art</option>
-            <option value="health">Health</option>
-            <option value="technology">Technology</option>
-            <option value="science">Science</option>
-            <option value="sports">Sports</option>
-         </select>
-         <button type="submit" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded">Filter</button>
+      <form method="get" action="{% url 'home' %}">
+            <select name="type"
+                  id="category"
+                  class="border-2 border-gray-300 rounded-lg p-2 shadow-sm focus:outline-none focus:border-rose-500 focus:ring-rose-500">
+               <option value="">Select a category</option>
+               <option value="social">Social</option>
+               <option value="art">Art</option>
+               <option value="health">Health</option>
+               <option value="technology">Technology</option>
+               <option value="science">Science</option>
+               <option value="sports">Sports</option>
+            </select>
+            <button type="submit" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded">Filter</button>
       </form>
    </div>
    {% comment %} date filter {% endcomment %}
-   <form method="get" action="{% url "view-events" %}">
-   <div class="flex flex-col md:flex-row md:justify-end gap-4 mb-6 items-center">
-      <input type="date" name="start_time" id="start_time" class="border-2 border-gray-300 rounded-lg p-2 shadow-sm focus:outline-none focus:border-rose-500 focus:ring-rose-500">
-      <input type="date" name="end_time" id="end_time" class="border-2 border-gray-300 rounded-lg p-2 shadow-sm focus:outline-none focus:border-rose-500 focus:ring-rose-500">
-      <button class="bg-blue-600 hover:bg-blue-700 shadow-sm px-3 py-2 text-white font-semibold rounded-lg">
-      Filter
-      </button>
-   </div>
+   <form method="get" action="{% url "home" %}">
+      <div class="flex flex-col md:flex-row md:justify-end gap-4 mb-6 items-center">
+            <input type="date"
+                  name="start_time"
+                  id="start_time"
+                  class="border-2 border-gray-300 rounded-lg p-2 shadow-sm focus:outline-none focus:border-rose-500 focus:ring-rose-500">
+            <input type="date"
+                  name="end_time"
+                  id="end_time"
+                  class="border-2 border-gray-300 rounded-lg p-2 shadow-sm focus:outline-none focus:border-rose-500 focus:ring-rose-500">
+            <button class="bg-blue-600 hover:bg-blue-700 shadow-sm px-3 py-2 text-white font-semibold rounded-lg">Filter</button>
+      </div>
    </form>
    <div class="grid gap-8 grid-cols-3 ">
-   {% if events %}
-   {% for event in events %}
-   {% comment %} event {% endcomment %}
-   <div class="bg-white shadow-sm hover:shadow-xl rounded-xl p-4 text-lg">
-      <a href="{% url 'event-details' event.id %}">
-         <h2 class="font-semibold text-2xl mb-3">{{event.name}}</h2>
-      </a>
-      <p class="mb-2 text-gray-600 ">{{event.description}}</p>
-      <p class="mb-2 text-gray-600 ">Total participant: {{event.participants.all.count}}</p>
-      <p class="mb-2 text-gray-600">Location: {{event.location}}</p>
-      <div class="flex gap-2 flex-wrap mt-2">
-      <a href="{% url 'update-event' event.id %}" class="bg-blue-600 hover:bg-blue-700 shadow-sm px-3 py-2 text-white font-semibold rounded-lg mb-1">Update Event</a>
-      <a href="{% url 'update-participant' event.id %}" class="bg-green-600 hover:bg-green-700 shadow-sm px-3 py-2 text-white font-semibold rounded-lg">Update Participants</a>
-      <a href="{% url 'update-category' event.id %}" class="bg-purple-600 hover:bg-purple-700 shadow-sm px-3 py-2 text-white font-semibold rounded-lg">Update Category</a>
-      <form action="{% url 'delete-event' event.id %}" method="POST" class="inline">
-         {% csrf_token %}
-         <button type="submit" class="bg-red-600 hover:bg-red-700 shadow-sm px-3 py-2 text-white font-semibold rounded-lg">Delete this event</button>
-      </form></div>
+      {% if events %}
+            {% for event in events %}
+               {% comment %} event {% endcomment %}
+               <div class="bg-white shadow-sm hover:shadow-xl rounded-xl p-4 text-lg">
+                  <a href="{% url 'event-details' event.id %}">
+                        <h2 class="font-semibold text-2xl mb-3">{{ event.name }}</h2>
+                  </a>
+                  <p class="mb-2 text-gray-600 ">{{ event.description }}</p>
+                  <p class="mb-2 text-gray-600 ">Total participant: {{ event.participants.all.count }}</p>
+                  <p class="mb-2 text-gray-600">Location: {{ event.location }}</p>
+                  <div class="flex gap-2 flex-wrap mt-2">
+                        <a href="{% url 'update-event' event.id %}"
+                           class="bg-blue-600 hover:bg-blue-700 shadow-sm px-3 py-2 text-white font-semibold rounded-lg mb-1">Update Event</a>
+                        <a href="{% url 'update-participant' event.id %}"
+                           class="bg-green-600 hover:bg-green-700 shadow-sm px-3 py-2 text-white font-semibold rounded-lg">Update Participants</a>
+                        <a href="{% url 'update-category' event.id %}"
+                           class="bg-purple-600 hover:bg-purple-700 shadow-sm px-3 py-2 text-white font-semibold rounded-lg">Update Category</a>
+                        <form action="{% url 'delete-event' event.id %}"
+                              method="POST"
+                              class="inline">
+                           {% csrf_token %}
+                           <button type="submit"
+                                    class="bg-red-600 hover:bg-red-700 shadow-sm px-3 py-2 text-white font-semibold rounded-lg">
+                              Delete this event
+                           </button>
+                        </form>
+                  </div>
+               </div>
+            {% endfor %}
+      {% else %}
+            {% for message in messages %}<p class="text-center text-xl text-gray-600">{{ message }}</p>{% endfor %}
+      {% endif %}
    </div>
-   {% endfor %}
-   {% else %}
-      {% for message in messages %}
-            <p class="text-center text-xl text-gray-600">{{ message }}</p>
-      {% endfor %}   
-
-   {% endif %}
-</div>
-
 </section>
-{% endblock event %}
+{% endblock content %}

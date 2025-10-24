@@ -1,6 +1,6 @@
-{% extends "event.html" %}
+{% extends "base.html" %}
 {% block title %} Delete Event {% endblock title %}
-{% block event %}
+{% block content %}
 <section class="container mx-auto py-10 px-6 text-center">
     <h1 class="text-3xl font-bold mb-6 text-red-600">Delete Event</h1>
     <p class="mb-6 text-gray-700">Are you sure you want to delete <span class="font-semibold">{{ event.name }}</span>?</p>
@@ -10,4 +10,4 @@
     </form>
     <a href="{% url 'event-details' event.id %}" class="ml-3 text-gray-600 font-semibold hover:underline">Cancel</a>
 </section>
-{% endblock event %}
+{% endblock content %}
