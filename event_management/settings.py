@@ -83,25 +83,25 @@ WSGI_APPLICATION = 'event_management.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME', default=''),
-        'USER': config('DB_USER', default=''),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', cast=int)
-    }
-}
-
-
 # DATABASES = {
-#     'default': dj_database_url.config(
-#         # Replace this value with your local database's connection string.
-#         default='postgresql://event_management_w2ob_user:BmGP45nxc1DxAdf2uisaetIxqGa2fhTJ@dpg-d3gl4gndiees73d7rqag-a.oregon-postgres.render.com/event_management_w2ob',
-#         conn_max_age=600
-#     )
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': config('DB_NAME', default=''),
+#         'USER': config('DB_USER', default=''),
+#         'PASSWORD': config('DB_PASSWORD', default=''),
+#         'HOST': config('DB_HOST', default='localhost'),
+#         'PORT': config('DB_PORT', cast=int)
+#     }
 # }
+
+
+DATABASES = {
+    'default': dj_database_url.config(
+        # Replace this value with your local database's connection string.
+        default='postgresql://event_manager_1_user:IOObHJNFtwQoHoWrrNDKaPo21q2nOafr@dpg-d3v5e1ripnbc739dk0bg-a.oregon-postgres.render.com/event_manager_1',
+        conn_max_age=600
+    )
+}
 
 
 # Password validation
