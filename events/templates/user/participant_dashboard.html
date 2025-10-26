@@ -1,0 +1,40 @@
+{% extends "user/dashboard.html" %}
+{% block title %}Participant Dashboard{% endblock title %}
+{% block content %}
+<!-- 📋 Dashboard Content -->
+    <main class="flex-grow">
+        <div class="max-w-5xl mx-auto py-10 px-6">
+            <h1 class="text-3xl font-bold mb-6 text-center">Welcome{{ rsvp.event.participants.username }}!</h1>
+            <p class="text-center text-gray-600 mb-10 font-semibold text-2xl">Your upcoming RSVPs and events:</p>
+
+            {% if rsvps %}
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for rsvp in rsvps %}
+                    <a href="{% url "event-details" rsvp.event.id %}">
+                        <div class="bg-white rounded-lg shadow-md p-5 hover:shadow-lg transition">
+                        <img src="{{ rsvp.event.asset.url }}" alt="{{ rsvp.event.name }}" class="w-full h-40 object-cover rounded-md mb-4">
+                        <h2 class="text-xl font-semibold mb-2">{{ rsvp.event.name }}</h2>
+                        <p class="text-gray-600 text-sm mb-2">{{ rsvp.event.location }}</p>
+                        <p class="text-gray-500 text-sm mb-4">
+                            {{ rsvp.event.start_date }} {% if rsvp.event.end_date %} - {{ rsvp.event.end_date }}{% endif %}
+                        </p>
+                        <span class="inline-block px-3 py-1 text-sm rounded-full 
+                            {% if rsvp.response == 'Yes' %}
+                                bg-green-100 text-green-700
+                            {% elif rsvp.response == 'Maybe' %}
+                                bg-yellow-100 text-yellow-700
+                            {% else %}
+                                bg-red-100 text-red-700
+                            {% endif %}">
+                            RSVP: {{ rsvp.response |upper}}
+                        </span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-center text-gray-500">You haven’t RSVP’d to any events yet.</p>
+            {% endif %}
+        </div>
+    </main>
+{% endblock content %}

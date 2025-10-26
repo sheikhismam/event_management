@@ -14,7 +14,7 @@
             <div class="px-2 py-1 {% if message.tags == 'success' %}bg-green-500{% endif %}">{{message}}</div>
         {% endfor %}
     {% endif %}
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         {{event_form}}
         {% comment %} {{participant_form}} {% endcomment %}

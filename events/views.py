@@ -1,27 +1,35 @@
-from events.forms import EventModelForm, ParticipantModelForm, CategoryModelForm
-from events.models import Event, Participant, Category
+from events.forms import EventModelForm, RSVPForm, CategoryModelForm
+from events.models import Event, Category, RSVP
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Prefetch
 from datetime import date, datetime
 from django.shortcuts import get_object_or_404
-from events.forms import RegisterForm, LoginForm
-from django.contrib.auth.models import User
+from events.forms import RegisterForm, LoginForm, AssignRoleForm, CreateGroupForm
+from django.contrib.auth.models import User, Group
 from django.http import HttpResponse
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 
+def is_organizer(user):
+    return user.groups.filter(name='Organizer').exists()
+
+def is_admin(user):
+    return user.groups.filter(name='Admin').exists()
+
+@login_required
 def details(request, id):
     event = Event.objects.select_related("category").prefetch_related("participants").get(id=id)
     return render(request, 'event_details.html', {'event': event})
 
-
+@login_required
+@user_passes_test(is_organizer, login_url='no-permission')
 def organizer_dashboard(request):
     type = request.GET.get('type', '')
 
-    events = Event.objects.select_related("category").prefetch_related("participants")
-    participants = Participant.objects.all()
+    events = Event.objects.select_related("category").all()
+    participants = User.objects.all()
 
     if type == "upcoming":
         events = events.filter(start_date__gte=date.today())
@@ -49,31 +57,27 @@ def organizer_dashboard(request):
         'view_type': view_type,
         'todays_events': todays_events
     }
-    return render(request, 'dashboard/organizer_dashboard.html', context)
+    return render(request, 'organizer/organizer_dashboard.html', context)
 
 @login_required
 @permission_required('events.add_event', login_url='no-permission')
 def create_event(request):
     event_form = EventModelForm()
-    participant_form = ParticipantModelForm()
-
+    # participant_form = ParticipantModelForm()
     if request.method == "POST":
-        event_form = EventModelForm(request.POST)
-        participant_form = ParticipantModelForm(request.POST)
-
+        event_form = EventModelForm(request.POST, request.FILES)
+        # participant_form = ParticipantModelForm(request.POST)
         if event_form.is_valid():
             event = event_form.save()
-            if participant_form.is_valid():
-                participant = participant_form.save()
-                participant.event.add(event)
-
+            # if participant_form.is_valid():
+            #     participant = participant_form.save()
+            #     participant.event.add(event)
             messages.success(request, 'Event created successfully')
-            return redirect('view-events')
-
+            return redirect('organizer-dashboard')
     categories = Category.objects.all()
     context = {
         'event_form': event_form,
-        'participant_form': participant_form,
+        # 'participant_form': participant_form,
         'categories': categories
     }
     return render(request, 'event_form.html', context)
@@ -90,7 +94,7 @@ def update_event(request, id):
         if event_form.is_valid():
             event = event_form.save()
             messages.success(request, 'Event updated successfully')
-            return redirect('event-details', id=event.id) 
+            return redirect('organizer-dashboard') 
 
     context = {
         'event_form': event_form,
@@ -99,42 +103,39 @@ def update_event(request, id):
     return render(request, 'event_form.html', context)
 
 
-def update_participant(request, id):
-    try:
-        event = Event.objects.get(id=id)
-    except Event.DoesNotExist:
-        return render(request, "404.html", status=404)
+# def update_participant(request, id):
+#     try:
+#         event = Event.objects.get(id=id)
+#     except Event.DoesNotExist:
+#         return render(request, "404.html", status=404)
 
-    if request.method == "POST":
-        participant_form = ParticipantModelForm(request.POST)
-        if participant_form.is_valid():
-            participant = participant_form.save()
-            event.participants.add(participant)
-            messages.success(request, "Participant updated successfully.")
-            return redirect("event-details", id=event.id)
-    else:
-        participant_form = ParticipantModelForm()
+#     if request.method == "POST":
+#         participant_form = ParticipantModelForm(request.POST)
+#         if participant_form.is_valid():
+#             participant = participant_form.save()
+#             event.participants.add(participant)
+#             messages.success(request, "Participant updated successfully.")
+#             return redirect("event-details", id=event.id)
+#     else:
+#         participant_form = ParticipantModelForm()
 
-    return render(request, "update_participant.html", {"form": participant_form, "event": event})
+#     return render(request, "update_participant.html", {"form": participant_form, "event": event})
 
 @login_required
-@user_passes_test('events.change_category', login_url='no-permission')
-def update_category(request, id):
-    try:
-        event = Event.objects.get(id=id)
-    except Event.DoesNotExist:
-        return render(request, "404.html", status=404)
-
+@permission_required('events.change_category', login_url='no-permission')
+def update_category(request, event_id):
+    event = Event.objects.get(id=event_id)
+    categories = Category.objects.all()
     if request.method == "POST":
-        category_form = CategoryModelForm(request.POST, instance=event.category)
-        if category_form.is_valid():
-            category_form.save()
+        selected_category_id = request.POST.get('category')
+        if selected_category_id:
+            selected_category = Category.objects.get(id=selected_category_id)
+            event.category = selected_category
+            event.save()
             messages.success(request, "Category updated successfully.")
-            return redirect("event-details", id=event.id)
-    else:
-        category_form = CategoryModelForm(instance=event.category)
+            return redirect("organizer-dashboard") 
+    return render(request, "update_category.html", {"categories": categories})
 
-    return render(request, "update_category.html", {"form": category_form, "event": event})
 
 def search_events(request):
     searchText = request.GET.get('searchText', '')
@@ -174,11 +175,13 @@ def home(request):
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
         events = events.filter(start_date__gte=start_date, start_date__lte=end_date)
-
-    return render(request, 'event_home.html', {'events': events})
+    categories = Category.objects.all()
+    context = {'events':events, 'categories':categories}
+    return render(request, 'event_home.html', context)
 
 
 def register(request):
+    event = Event.objects.get(id=31)
     form = RegisterForm()
     if request.method == "POST":
         form = RegisterForm(request.POST)
@@ -187,9 +190,11 @@ def register(request):
             user.set_password(form.cleaned_data.get('password1'))
             user.is_active = False
             user.save()
+            event.participants.add(user)
             messages.success(request, 'You have registered successfully. An activation email has been sent. Please check your email')
-            return redirect('log-in')
+            return redirect('register')
     return render(request, 'registration/register.html', {'form':form})
+
 
 def log_in(request):
     form = LoginForm()
@@ -220,12 +225,148 @@ def activate_user(request, user_id, token):
         return HttpResponse('User not found')
 
 
-def is_organizer(user):
-    return user.groups.filter(name='Manager').exists()
 
 
-def Assign_role():
-    pass
+@login_required
+@user_passes_test(is_admin, login_url='no-permission')
+def admin_dashboard(request):
+    users = User.objects.prefetch_related(
+        Prefetch('groups', queryset=Group.objects.all(), to_attr='all_groups')
+    ).all()
+    for user in users:
+        if user.all_groups:
+            user.group_name = user.all_groups[0].name
+        else:
+            user.group_name = 'No role assigned'
+    if request.user.groups.filter(name="Admin").exists():
+        return render(request, 'admin/dashboard.html', {'users':users})
 
-def create_group():
-    pass
+@login_required
+@user_passes_test(is_admin, login_url='no-permission')
+def Assign_role(request, user_id):
+    user = User.objects.get(id=user_id)
+    form = AssignRoleForm()
+    if request.method == "POST":
+        form = AssignRoleForm(request.POST)
+        if form.is_valid():
+            role = form.cleaned_data.get('role')
+            user.groups.clear()
+            user.groups.add(role)
+            messages.success(request, f'{user.username} has been assigned to {role.name} role.')
+            return redirect('admin-dashboard')
+    return render(request, 'admin/assigned_role.html', {'form': form})
+
+login_required
+@user_passes_test(is_admin, login_url='no-permission')
+def create_group(request):
+    form = CreateGroupForm()
+    if request.method == 'POST':
+        form = CreateGroupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'You have successfully created a group')
+            return redirect('create-group')
+    return render(request, 'admin/create_group.html', {'form': form})
+
+@login_required
+@user_passes_test(is_admin, login_url='no-permission')
+def delete_group(request, group_id):
+    group = Group.objects.get(id=group_id)
+    if request.method == "POST":
+        group.delete()
+        return redirect('admin-dashboard')
+    return render(request, 'admin/group_list.html')
+
+@login_required
+@user_passes_test(is_admin, login_url='no-permission')
+def view_groups(request):
+    groups = Group.objects.all()
+    return render(request, 'admin/groups_list.html', {'groups': groups})
+
+@login_required
+@permission_required('events.add_category', login_url='no-permission')
+def create_category(request):
+    form = CategoryModelForm()
+    if request.method == "POST":
+        form = CategoryModelForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Category has been created successfully')
+            return redirect('organizer-dashboard')
+    return render(request, 'create_category.html', {'form': form})
+
+@login_required
+@permission_required('events.view_category', login_url='no-permission')
+def view_category(request):
+    categories = Category.objects.all()
+    return render(request, 'delete_category.html', {'categories': categories}) 
+
+@login_required
+@permission_required('events.delete_category', login_url='no-permission')
+def delete_category(request, category_id):
+    category = Category.objects.get(id=category_id)
+    if request.method == "POST":
+        category.delete()
+        return redirect('organizer-dashboard')
+    return render(request, 'delete_category.html')
+
+@login_required
+def view_participants(request):
+    participants = User.objects.all()
+    # if request.user.group.filter(name="Admin").exists() or request.user.group.filter(name="Organizer").exists():
+    return render(request, 'admin/participants_list.html', {'participants':participants})
+
+@login_required
+@permission_required('event.delete_user', login_url='no-permission')
+def delete_participant(request, participant_id):
+    participant = User.objects.get(id=participant_id)
+    if request.method == "POST":
+        participant.delete()
+        return redirect('view-participants')
+
+
+def rsvp_event(request, event_id):
+    event = Event.objects.get(id=event_id)
+    rsvp, created = RSVP.objects.get_or_create(user=request.user, event=event)
+    form = RSVPForm(instance=rsvp)
+    if request.method == "POST":
+        form = RSVPForm(request.POST, instance=rsvp)
+        if form.is_valid():
+            if not event.participants.filter(id =request.user.id).exists():
+                event.participants.add(request.user)
+            form.save()
+            messages.success(request, 'Your RSVP has been updated. Please check your mail to activate.')
+            return redirect('rsvp-event', event_id=event_id)
+    return render(request, 'user/rsvp_form.html', {'form': form})
+
+@login_required
+def participant_dashboard(request):
+    # this was previously called view_rsvp
+    rsvps = RSVP.objects.select_related('user', 'event').filter(user=request.user)
+    if request.user.groups.filter(name="Participant").exists():
+        return render(request, 'user/participant_dashboard.html', {'rsvps':rsvps})
+
+
+def activate_rsvp(request, event_id, token):
+    try:
+        rsvp = RSVP.objects.get(id=event_id)
+        user = rsvp.user
+        if default_token_generator.check_token(user, token):
+            rsvp.is_active = True
+            rsvp.save()
+            messages.success(request, 'You have activated your RSVP successfully')
+            return redirect('participant-dashboard')
+        else:
+            return HttpResponse('Invalid ID or token')
+        
+    except RSVP.DoesNotExist:
+        return HttpResponse('RSVP not found')
+
+@login_required
+def view_dashboard(request):
+    if request.user.groups.filter(name="Admin").exists():
+        return redirect('admin-dashboard')
+    elif request.user.groups.filter(name="Organizer").exists():
+        return redirect('organizer-dashboard')
+    elif request.user.groups.filter(name="Participant").exists():
+        return redirect('participant-dashboard')

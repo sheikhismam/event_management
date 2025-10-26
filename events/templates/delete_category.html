@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Delete Category{% endblock title %}
+{% block content %}
+<div class="w-1/2 mx-auto my-10">
+  <div class="bg-white shadow-md rounded-lg p-6">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-4 text-center">Delete Category</h2>
+
+    <table class="w-full border-collapse border border-gray-200">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="border border-gray-200 px-4 py-2 text-left text-gray-700">Category Name</th>
+          <th class="border border-gray-200 px-4 py-2 text-center text-gray-700">Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for category in categories %}
+        <tr class="hover:bg-gray-50">
+          <td class="border border-gray-200 px-4 py-2">{{ category.name }}</td>
+          <td class="border border-gray-200 px-4 py-2 text-center">
+            <form method="POST" action="{% url 'delete-category' category.id %}">
+              {% csrf_token %}
+              <button 
+                type="submit" 
+                class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-md transition"
+              >
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="2" class="text-center text-gray-500 py-4">
+            No categories found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock content %}

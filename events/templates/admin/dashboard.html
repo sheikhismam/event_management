@@ -9,19 +9,21 @@
 </head>
 <body>
     {% comment %} nav bar {% endcomment %}
-    <nav class="bg-blue-300 text-white">
-        <div class="flex justify-between items-center w-5/6 mx-auto bg-text-white">
-            <a href="{% url "organizer-dashboard" %}">
+    <nav class=" text-black font-normal">
+        <div class="flex justify-between items-center w-5/6 mx-auto">
+            <a href="{% url "view-dashboard" %}">
                 <div class="text-2xl py-5 font-normal">Dashboard</div>
             </a>
             <div class="flex justify-between items-center">
                 <div class="px-4 flex">
-                    <a class="px-3 font-bold" href="{% url "home" %}">Events</a>
-                    <a class="px-3 font-bold">Groups</a>
-                    <a class="px-3 font-bold" href="">Create Groups</a>
+                    <a class="px-3 " href="{% url "home" %}">Home</a>
+                    <a class="px-3 " href="{% url "home" %}">Events</a>
+                    <a class="px-3 " href="{% url "view-participants" %}">Participants</a>
+                    <a class="px-3d" href="{% url "view-groups" %}">Groups</a>
+                    <a class="px-3 " href="{% url "create-group" %}">Create Groups</a>
                     <form method="POST">
                         {% csrf_token %}
-                        <a class="px-3 font-bold" href="{% url "log-out" %}">LOG OUT</a>
+                        <a class="px-2" href="{% url "log-out" %}">Log out</a>
                     </form>
                 </div>
                 <a href="">
@@ -37,5 +39,9 @@
             </div>
         </div>
     </nav>
+
+    {% block content %}
+        {% include "admin/users_list.html" %}
+    {% endblock content %}
 </body>
 </html>

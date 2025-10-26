@@ -1,12 +1,12 @@
 {% comment %} nav bar {% endcomment %}
 <nav class="bg-blue-600 text-white">
     <div class="flex justify-between items-center w-5/6 mx-auto bg-text-white">
-        <a href="{% url "organizer-dashboard" %}">
+        <a href="{% url "view-dashboard" %}">
             <div class="text-2xl py-5 font-normal">Dashboard</div>
         </a>
         <div class="flex justify-between items-center">
             <div class="px-4 flex">
-                <a class="px-3 font-bold" href="{% url "home" %}">HOME</a>
+                {% comment %} <a class="px-3 font-bold" href="{% url "home" %}">HOME</a> {% endcomment %}
                 <a class="px-3 font-bold">ABOUT</a>
                 <a class="px-3 font-bold" href="">EVENTS</a>
                 <a class="px-3 font-bold" href="">GALLERY</a>

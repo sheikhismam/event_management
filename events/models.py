@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import time
+from django.contrib.auth.models import User
 
 # Create your models here.
 class Event(models.Model):
@@ -9,6 +10,11 @@ class Event(models.Model):
     end_date = models.DateField(null=True, blank=True)
     time = models.TimeField(null=False, blank=False, default=time(9,0))
     location =  models.CharField(max_length=255)
+    asset = models.ImageField(upload_to='events_asset', blank=True, null=True, default='events_asset/download.jpeg')
+    participants = models.ManyToManyField(
+        User,
+        related_name='rsvp_events'
+    )
     category = models.ForeignKey(
         "Category",
         on_delete=models.CASCADE,
@@ -17,17 +23,6 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
-    
-class Participant(models.Model):
-    name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    event = models.ManyToManyField(
-        Event,
-        related_name="participants"
-    )
-    def __str__(self):
-        return self.name
-    
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -35,3 +30,18 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+class RSVP(models.Model):
+    RESPONSE_CHOICES = [
+        ('yes', 'Attending'),
+        ('no', 'Not Attending'),
+        ('maybe', 'Maybe')
+    ]
+    event = models.ForeignKey(Event, related_name='events', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='users', on_delete=models.CASCADE)
+    response = models.CharField(max_length=15, choices=RESPONSE_CHOICES, default="yes")
+    is_active = models.BooleanField(default=False)
+    unique_together = ('user', 'event')
+
+    def __str__(self):
+        return f'{self.user.username} - {self.event.name} - {self.response}'

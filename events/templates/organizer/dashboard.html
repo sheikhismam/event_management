@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static "css/output.css" %}">
+        <title>Organizer Dashboard</title>
+    </head>
+<body>
+    <header>
+        <nav class="bg-gray-800 text-white shadow-md">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <!-- Logo -->
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="{% url 'view-dashboard' %}"
+                            class="text-2xl font-bold text-white">Organizer Panel</a>
+                    </div>
+                    <!-- Navigation Links -->
+                    <div class="hidden md:flex md:space-x-6 items-center">
+                        <a href="{% url 'home' %}" class="hover:text-gray-300">Home</a>
+                        <a href="{% url 'view-dashboard' %}" class="hover:text-gray-300">Dashboard</a>
+                        <a href="" class="hover:text-gray-300">Events</a>
+                        <a href="" class="hover:text-gray-300">Participants</a>
+                        <a href="" class="hover:text-gray-300">RSVPs</a>
+                        <a href="" class="hover:text-gray-300">Settings</a>
+                        <form action="{% url 'home' %}" method="POST" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="hover:text-gray-300">Logout</button>
+                        </form> 
+                        {% comment %} <a href="{% url "log-out" %}" class="hover:text-gray-300">Logout</a> {% endcomment %}
+                    </div>
+                    <!-- Mobile Menu Button -->
+                    <div class="flex items-center md:hidden">
+                        <button id="mobile-menu-button" class="focus:outline-none">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden bg-gray-700">
+                <a href="{% url "home" %}"
+                    class="block px-4 py-2 hover:bg-gray-600">Home</a>
+                <a href="{% url 'view-dashboard' %}?type=organizer"
+                    class="block px-4 py-2 hover:bg-gray-600">Dashboard</a>
+                <a href=""
+                    class="block px-4 py-2 hover:bg-gray-600">Events</a>
+                <a href=""
+                    class="block px-4 py-2 hover:bg-gray-600">Participants</a>
+                <a href=""
+                    class="block px-4 py-2 hover:bg-gray-600">RSVPs</a>
+                <a href=""
+                    class="block px-4 py-2 hover:bg-gray-600">Settings</a>
+                <form action="{% url 'log-out' %}" method="POST" class="block px-4 py-2">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full text-left hover:bg-gray-600">Logout</button>
+                </form>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+            
+        {% endblock content %}
+    </main>
+
+
+
+
+
+    <script>
+        const menuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+    
+</body>
+</html>

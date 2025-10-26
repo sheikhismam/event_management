@@ -8,6 +8,6 @@
         {% csrf_token %}
         <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg">Yes, Delete</button>
     </form>
-    <a href="{% url 'event-details' event.id %}" class="ml-3 text-gray-600 font-semibold hover:underline">Cancel</a>
+    <a href="{% url 'organizer-dashboard' %}" class="ml-3 text-gray-600 font-semibold hover:underline">Cancel</a>
 </section>
 {% endblock content %}

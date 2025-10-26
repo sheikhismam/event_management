@@ -1,0 +1,17 @@
+{% extends "user/dashboard.html" %}
+{% block title %}RSVP Form{% endblock title %}
+{% block content %}
+<div class="w-1/3 mx-auto py-10"> 
+    {% if messages %}
+        {% for message in messages %}
+            <p class="bg-green-500 text-white font-lg">{{message}}</p>
+        {% endfor %}
+    {% endif %}
+    <form action="" method="POST"> 
+        {% csrf_token %}
+        {{form.as_p}} 
+        <button type="submit" class="bg-blue-500 hover:bg-blue-70 rounded-md text-white px-2 py-1 mt-2 font-medium">Change RSVP</button> 
+    </form> 
+</div>
+
+{% endblock content %}
