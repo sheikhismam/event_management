@@ -181,7 +181,7 @@ def home(request):
 
 
 def register(request):
-    event = Event.objects.get(id=31)
+    event = Event.objects.get(id=32)
     form = RegisterForm()
     if request.method == "POST":
         form = RegisterForm(request.POST)
