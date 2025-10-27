@@ -181,7 +181,7 @@ def home(request):
 
 
 def register(request):
-    event = Event.objects.get(id=32)
+    # event = Event.objects.get(id=32)
     form = RegisterForm()
     if request.method == "POST":
         form = RegisterForm(request.POST)
@@ -190,7 +190,7 @@ def register(request):
             user.set_password(form.cleaned_data.get('password1'))
             user.is_active = False
             user.save()
-            event.participants.add(user)
+            # event.participants.add(user)
             messages.success(request, 'You have registered successfully. An activation email has been sent. Please check your email')
             return redirect('register')
     return render(request, 'registration/register.html', {'form':form})
