@@ -195,7 +195,12 @@ def register(request):
             return redirect('register')
     return render(request, 'registration/register.html', {'form':form})
 
+# def has_registered(request):
+#     if request.user.groups.filter(name="Admin").exists() or request.user.groups.filter(name="Participant").exists() or request.user.groups.filter(name="Organizer").exists():
+#         return redirect('log-in')
 
+
+# @user_passes_test(has_registered, login_url='no-permission')
 def log_in(request):
     form = LoginForm()
     if request.method == "POST":
