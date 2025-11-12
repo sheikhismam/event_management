@@ -5,6 +5,10 @@ from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
 from django.core.mail import send_mail
 from events.models import RSVP
+from django.contrib.auth import get_user_model
+
+
+User = get_user_model()
 
 @receiver(post_save, sender=User)
 def send_activation_email(sender, created, instance, **kwargs):
@@ -42,4 +46,10 @@ def send_rsvp_signal(sender, instance, created, **kwargs):
             send_mail(subject, message, settings.EMAIL_HOST_USER, recipient, fail_silently=False)
         except Exception as e:
             print(f'Failed to send mail to {user.email}:', str(e))
-    
+
+""" 
+@receiver(post_save, sender=User)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+"""

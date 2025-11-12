@@ -5,12 +5,52 @@ from django.contrib import messages
 from django.db.models import Count, Q, Prefetch
 from datetime import date, datetime
 from django.shortcuts import get_object_or_404
-from events.forms import RegisterForm, LoginForm, AssignRoleForm, CreateGroupForm
+from events.forms import RegisterForm, LoginForm, AssignRoleForm, CreateGroupForm, EditProfileForm, CustomPasswordChangeForm, CustomPasswordResetForm, CustomPasswordResetConfirmForm
 from django.contrib.auth.models import User, Group
 from django.http import HttpResponse
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
+from django.views import View
+from django.views.generic import CreateView, UpdateView, TemplateView
+from django.urls import reverse_lazy
+from django.contrib.auth import get_user_model
+from django.contrib.auth.views import PasswordChangeView, PasswordResetView, PasswordResetConfirmView
+
+User = get_user_model()
+
+
+class EditProfileView(UpdateView):
+    model = User
+    form_class = EditProfileForm
+    template_name = 'accounts/update_profile.html'
+    success_url = reverse_lazy('profile')
+    
+    def get_object(self):
+        return self.request.user
+    
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+    
+    
+class ProfileView(TemplateView):
+    template_name = 'accounts/profile.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context["username"] =  user.username
+        context['email'] = user.email
+        context['first_name'] = user.first_name
+        context['last_name'] = user.last_name
+        context['phone_number'] = user.phone_number
+        context['profile_image'] = user.profile_image
+        context['date_joined'] = user.date_joined
+        context['last_login'] = user.last_login
+        return context
+    
 
 def is_organizer(user):
     return user.groups.filter(name='Organizer').exists()
@@ -23,85 +63,162 @@ def details(request, id):
     event = Event.objects.select_related("category").prefetch_related("participants").get(id=id)
     return render(request, 'event_details.html', {'event': event})
 
-@login_required
-@user_passes_test(is_organizer, login_url='no-permission')
-def organizer_dashboard(request):
-    type = request.GET.get('type', '')
+# @login_required
+# @user_passes_test(is_organizer, login_url='no-permission')
+# def organizer_dashboard(request):
+#     type = request.GET.get('type', '')
 
-    events = Event.objects.select_related("category").all()
-    participants = User.objects.all()
+#     events = Event.objects.select_related("category").all()
+#     participants = User.objects.all()
 
-    if type == "upcoming":
-        events = events.filter(start_date__gte=date.today())
-    elif type == "past":
-        events = events.filter(end_date__lt=date.today())
-    elif type == "all":
-        events = events
+#     if type == "upcoming":
+#         events = events.filter(start_date__gte=date.today())
+#     elif type == "past":
+#         events = events.filter(end_date__lt=date.today())
+#     elif type == "all":
+#         events = events
     
 
-    participant_count = participants.count()
-    event_counts = Event.objects.aggregate(
-        total=Count('id'),
-        upcoming=Count('id', filter=Q(start_date__gte=date.today())),
-        past=Count('id', filter=Q(end_date__lt=date.today()))
-    )
-    view_type = "today"
-    todays_events = Event.objects.filter(start_date=date.today())
+#     participant_count = participants.count()
+#     event_counts = Event.objects.aggregate(
+#         total=Count('id'),
+#         upcoming=Count('id', filter=Q(start_date__gte=date.today())),
+#         past=Count('id', filter=Q(end_date__lt=date.today()))
+#     )
+#     view_type = "today"
+#     todays_events = Event.objects.filter(start_date=date.today())
 
-    context = {
-        'events': events,
-        'participants': participants,
-        'participant_count': participant_count,
-        'event_counts': event_counts,
-        'type': type,
-        'view_type': view_type,
-        'todays_events': todays_events
-    }
-    return render(request, 'organizer/organizer_dashboard.html', context)
+#     context = {
+#         'events': events,
+#         'participants': participants,
+#         'participant_count': participant_count,
+#         'event_counts': event_counts,
+#         'type': type,
+#         'view_type': view_type,
+#         'todays_events': todays_events
+#     }
+#     return render(request, 'organizer/organizer_dashboard.html', context)
 
-@login_required
-@permission_required('events.add_event', login_url='no-permission')
-def create_event(request):
-    event_form = EventModelForm()
-    # participant_form = ParticipantModelForm()
-    if request.method == "POST":
-        event_form = EventModelForm(request.POST, request.FILES)
-        # participant_form = ParticipantModelForm(request.POST)
+
+class OrganizerDashboardView(PermissionRequiredMixin, LoginRequiredMixin, View):
+    login_url = 'log-in'
+    template_name = 'organizer/organizer_dashboard.html'
+    permission_required = 'events.add_event'
+
+    def get(self, request, *args, **kwargs):
+        type = request.GET.get('type', '')
+
+        events = Event.objects.select_related("category").all()
+        participants = User.objects.all()
+
+        if type == "upcoming":
+            events = events.filter(start_date__gte=date.today())
+        elif type == "past":
+            events = events.filter(end_date__lt=date.today())
+        elif type == "all":
+            events = events
+
+        participant_count = participants.count()
+        event_counts = Event.objects.aggregate(
+            total=Count('id'),
+            upcoming=Count('id', filter=Q(start_date__gte=date.today())),
+            past=Count('id', filter=Q(end_date__lte=date.today()))
+        )
+        view_type = "today"
+        todays_events = Event.objects.filter(start_date=date.today())
+
+        context = {
+            'events': events,
+            'participants': participants,
+            'participant_count': participant_count,
+            'event_counts': event_counts,
+            'type': type,
+            'view_type': view_type,
+            'todays_events': todays_events
+        }
+        return render(request, self.template_name, context)
+
+
+# @login_required
+# @permission_required('events.add_event', login_url='no-permission')
+# def create_event(request):
+#     event_form = EventModelForm()
+#     # participant_form = ParticipantModelForm()
+#     if request.method == "POST":
+#         event_form = EventModelForm(request.POST, request.FILES)
+#         # participant_form = ParticipantModelForm(request.POST)
+#         if event_form.is_valid():
+#             event = event_form.save()
+#             # if participant_form.is_valid():
+#             #     participant = participant_form.save()
+#             #     participant.event.add(event)
+#             messages.success(request, 'Event created successfully')
+#             return redirect('organizer-dashboard')
+#     categories = Category.objects.all()
+#     context = {
+#         'event_form': event_form,
+#         # 'participant_form': participant_form,
+#         'categories': categories
+#     }
+#     return render(request, 'event_form.html', context)
+
+class CreateEvent(PermissionRequiredMixin, LoginRequiredMixin, CreateView):
+    login_url = 'log-in'
+    permission_required = 'events.add_event'
+    form_class = EventModelForm
+    model = Event
+    template_name = 'event_form.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['event_form'] = self.form_class()
+        context['categories'] = Category.objects.all()
+        return context
+    
+    def form_valid(self, form):
+        form.save()    
+        return redirect('organizer-dashboard')
+    
+
+# @login_required
+# @permission_required('events.change_event', login_url='no-permission')
+# def update_event(request, id):
+#     event = get_object_or_404(Event, id=id)  
+#     event_form = EventModelForm(instance=event)
+
+#     if request.method == "POST":
+#         event_form = EventModelForm(request.POST, instance=event)
+#         if event_form.is_valid():
+#             event = event_form.save()
+#             messages.success(request, 'Event updated successfully')
+#             return redirect('organizer-dashboard') 
+
+#     context = {
+#         'event_form': event_form,
+#         'categories': Category.objects.all()
+#     }
+#     return render(request, 'event_form.html', context)
+
+class UpdateEvent(PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
+    login_url = 'log-in'
+    permission_required = 'events.change_event'
+    model = Event
+    pk_url_kwarg = 'event_id'
+    template_name = 'event_form.html'
+    form_class = EventModelForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        event = self.get_object()
+        context['event_form'] = self.form_class(instance=event)
+        context['categories'] = Category.objects.all()
+        return context
+    def post(self, request, *args, **kwargs):
+        event_form = self.form_class(request.POST, instance=self.get_object())
         if event_form.is_valid():
-            event = event_form.save()
-            # if participant_form.is_valid():
-            #     participant = participant_form.save()
-            #     participant.event.add(event)
-            messages.success(request, 'Event created successfully')
-            return redirect('organizer-dashboard')
-    categories = Category.objects.all()
-    context = {
-        'event_form': event_form,
-        # 'participant_form': participant_form,
-        'categories': categories
-    }
-    return render(request, 'event_form.html', context)
-
-
-@login_required
-@permission_required('events.change_event', login_url='no-permission')
-def update_event(request, id):
-    event = get_object_or_404(Event, id=id)  
-    event_form = EventModelForm(instance=event)
-
-    if request.method == "POST":
-        event_form = EventModelForm(request.POST, instance=event)
-        if event_form.is_valid():
-            event = event_form.save()
+            event_form.save()
             messages.success(request, 'Event updated successfully')
-            return redirect('organizer-dashboard') 
-
-    context = {
-        'event_form': event_form,
-        'categories': Category.objects.all()
-    }
-    return render(request, 'event_form.html', context)
-
+            return redirect('organizer-dashboard')
 
 # def update_participant(request, id):
 #     try:
@@ -180,20 +297,34 @@ def home(request):
     return render(request, 'event_home.html', context)
 
 
-def register(request):
-    event = Event.objects.get(id=31)
-    form = RegisterForm()
-    if request.method == "POST":
+# def register(request):
+#     # event = Event.objects.get(id=31)
+#     form = RegisterForm()
+#     if request.method == "POST":
+#         form = RegisterForm(request.POST)
+#         if form.is_valid():
+#             user = form.save(commit=False)
+#             user.set_password(form.cleaned_data.get('password1'))
+#             user.is_active = False
+#             user.save()
+#             # event.participants.add(user)
+#             messages.success(request, 'You have registered successfully. An activation email has been sent. Please check your email')
+#             return redirect('register')
+#     return render(request, 'registration/register.html', {'form':form})
+
+class RegisterView(CreateView):
+    template_name = 'registration/register.html'
+    form_class = RegisterForm
+    def post(self, request, *args, **kwargs):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
             user.set_password(form.cleaned_data.get('password1'))
             user.is_active = False
             user.save()
-            event.participants.add(user)
             messages.success(request, 'You have registered successfully. An activation email has been sent. Please check your email')
             return redirect('register')
-    return render(request, 'registration/register.html', {'form':form})
+        return render(request, self.template_name, {'form':form})
 
 
 def log_in(request):
@@ -225,8 +356,6 @@ def activate_user(request, user_id, token):
         return HttpResponse('User not found')
 
 
-
-
 @login_required
 @user_passes_test(is_admin, login_url='no-permission')
 def admin_dashboard(request):
@@ -241,20 +370,39 @@ def admin_dashboard(request):
     if request.user.groups.filter(name="Admin").exists():
         return render(request, 'admin/dashboard.html', {'users':users})
 
-@login_required
-@user_passes_test(is_admin, login_url='no-permission')
-def Assign_role(request, user_id):
-    user = User.objects.get(id=user_id)
-    form = AssignRoleForm()
-    if request.method == "POST":
-        form = AssignRoleForm(request.POST)
-        if form.is_valid():
-            role = form.cleaned_data.get('role')
-            user.groups.clear()
-            user.groups.add(role)
-            messages.success(request, f'{user.username} has been assigned to {role.name} role.')
-            return redirect('admin-dashboard')
-    return render(request, 'admin/assigned_role.html', {'form': form})
+# @login_required
+# @user_passes_test(is_admin, login_url='no-permission')
+# def Assign_role(request, user_id):
+#     user = User.objects.get(id=user_id)
+#     form = AssignRoleForm()
+#     if request.method == "POST":
+#         form = AssignRoleForm(request.POST)
+#         if form.is_valid():
+#             role = form.cleaned_data.get('role')
+#             user.groups.clear()
+#             user.groups.add(role)
+#             messages.success(request, f'{user.username} has been assigned to {role.name} role.')
+#             return redirect('admin-dashboard')
+#     return render(request, 'admin/assigned_role.html', {'form': form})
+
+class AssignRoleView(PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
+    form_class = AssignRoleForm
+    model = User
+    template_name = 'admin/assigned_role.html'
+    login_url = 'log-in'
+    permission_required = 'events.add_event'
+    pk_url_kwarg = 'user_id'
+    success_url = reverse_lazy('admin-dashboard')
+    
+    def form_valid(self, form):
+        user = self.get_object()
+        role = form.cleaned_data.get('role')
+        user.groups.clear()
+        user.groups.add(role)
+        messages.success(self.request, f'{user.username} has been assigned to {role.name} role')
+        return super().form_valid(form)
+    
+
 
 login_required
 @user_passes_test(is_admin, login_url='no-permission')
@@ -370,3 +518,41 @@ def view_dashboard(request):
         return redirect('organizer-dashboard')
     elif request.user.groups.filter(name="Participant").exists():
         return redirect('participant-dashboard')
+    else:
+        return HttpResponse('<h3>you are not assigned to any valid group</h3>', status=403)
+    
+    
+
+
+class PasswordChange(PasswordChangeView):
+    template_name = 'accounts/password_change.html'
+    form_class = CustomPasswordChangeForm
+
+
+class PasswordReset(PasswordResetView):
+    template_name = 'registration/password_reset.html'
+    form_class = CustomPasswordResetForm
+    success_url = reverse_lazy('log-in')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["protocol"] = 'https' if self.request.is_secure() else 'http'
+        context['domain'] = self.request.get_host()
+        print(context)
+        return context
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'An email has been sent to you. Please reset the password by clicking the link provided in the email')
+        print('hello')
+        return super().form_valid(form)
+    
+
+class PasswordResetConfirm(PasswordResetConfirmView):
+    form_class = CustomPasswordResetConfirmForm
+    template_name = 'registration/password_reset.html'
+    success_url = reverse_lazy('log-in')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Password reset successfully')
+        return super().form_valid(form)
+    

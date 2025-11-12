@@ -8,7 +8,7 @@
             <div class="px-4 flex">
                 {% comment %} <a class="px-3 font-bold" href="{% url "home" %}">HOME</a> {% endcomment %}
                 <a class="px-3 font-bold">ABOUT</a>
-                <a class="px-3 font-bold" href="">EVENTS</a>
+                <a class="px-3 font-bold" href="{% url "profile" %}">PROFILE</a>
                 <a class="px-3 font-bold" href="">GALLERY</a>
                 <form method="POST">
                     {% csrf_token %}

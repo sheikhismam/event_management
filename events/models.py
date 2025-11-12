@@ -1,6 +1,7 @@
 from django.db import models
 from datetime import time
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractUser
+from django.conf import settings
 
 # Create your models here.
 class Event(models.Model):
@@ -12,7 +13,7 @@ class Event(models.Model):
     location =  models.CharField(max_length=255)
     asset = models.ImageField(upload_to='events_asset', blank=True, null=True, default='events_asset/download.jpeg')
     participants = models.ManyToManyField(
-        User,
+        settings.AUTH_USER_MODEL,
         related_name='rsvp_events'
     )
     category = models.ForeignKey(
@@ -38,10 +39,28 @@ class RSVP(models.Model):
         ('maybe', 'Maybe')
     ]
     event = models.ForeignKey(Event, related_name='events', on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name='users', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='users', on_delete=models.CASCADE)
     response = models.CharField(max_length=15, choices=RESPONSE_CHOICES, default="yes")
     is_active = models.BooleanField(default=False)
     unique_together = ('user', 'event')
 
     def __str__(self):
         return f'{self.user.username} - {self.event.name} - {self.response}'
+    
+"""
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, related_name='userprofile', on_delete=models.CASCADE, primary_key=True)
+    bio = models.CharField(blank=True)
+    profile_image = models.ImageField(upload_to='profile_asset',default='events_asset/health.jpeg', blank=True)
+
+
+    def __str__(self):
+        return f'{self.user.username}'
+"""
+
+class CustomUser(AbstractUser):
+    profile_image = models.ImageField(upload_to='profile_asset', default='events_asset/health.jpeg', blank=True)
+    phone_number = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.username

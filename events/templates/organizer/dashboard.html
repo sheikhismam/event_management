@@ -25,7 +25,7 @@
                         <a href="" class="hover:text-gray-300">Participants</a>
                         <a href="" class="hover:text-gray-300">RSVPs</a>
                         <a href="" class="hover:text-gray-300">Settings</a>
-                        <form action="{% url 'home' %}" method="POST" class="inline">
+                        <form action="{% url 'log-out' %}" method="POST" class="inline">
                             {% csrf_token %}
                             <button type="submit" class="hover:text-gray-300">Logout</button>
                         </form> 
